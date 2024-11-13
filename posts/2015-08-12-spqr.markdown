@@ -1,0 +1,14 @@
+---
+title: S.P.Q.R.
+tags: foo, bar2, vim
+---
+
+```hs
+sqr x = x * x
+main = putStrln "Hi how are you"
+```
+
+```python
+def foo(x:int) = 
+    return x * x
+```
