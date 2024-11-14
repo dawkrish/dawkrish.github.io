@@ -1,3 +1,18 @@
+@import url('https://fonts.googleapis.com/css2?family=Host+Grotesk:ital,wght@0,300..800;1,300..800&family=Ubuntu+Mono:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+*{
+  font-family: 'Host Grotesk', sans-serif;
+}
+
+pre, pre *{
+  font-family: "Ubuntu Mono", monospace;
+}
+
+pre.sourceCode {
+  padding: 0.6em;
+  border-left: 0.2rem solid #000;
+}
+
 html {
   font-size: 62.5%;
 }
@@ -5,6 +20,8 @@ html {
 body {
   font-size: 1.6rem;
   color: #000;
+  background-color: #FBF4DB;
+  background-color:  #FBF8EF;
 }
 
 header {
@@ -20,7 +37,7 @@ nav a {
   font-weight: bold;
   color: black;
   text-decoration: none;
-  text-transform: uppercase;
+  /* text-transform: uppercase; */
 }
 
 footer {
