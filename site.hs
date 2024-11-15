@@ -6,20 +6,6 @@ import Data.Monoid (mappend)
 import Hakyll
 import Text.Pandoc.Highlighting
 
---------------------------------------------------------------------------------
--- The Code I have added to default config
-config :: Configuration
-config =
-  defaultConfiguration
-    { destinationDirectory = "docs"
-    }
-
-pandocCodeStyle :: Style
-pandocCodeStyle = haddock
-
-postCtxWithTags tags = tagsField "tags" tags `mappend` postCtx
-
------------------------------------------
 main :: IO ()
 main = hakyllWith config $ do
   match "images/*" $ do
@@ -62,11 +48,6 @@ main = hakyllWith config $ do
         >>= loadAndApplyTemplate "templates/default.html" (postCtxWithTags tags)
         >>= relativizeUrls
 
-  create ["css/syntax.css"] $ do
-    route idRoute
-    compile $ do
-      makeItem $ styleToCss pandocCodeStyle
-
   create ["posts.html"] $ do
     route idRoute
     compile $ do
@@ -81,17 +62,43 @@ main = hakyllWith config $ do
         >>= loadAndApplyTemplate "templates/default.html" ctx
         >>= relativizeUrls
 
+  match "projects/*" $ do
+    route $ setExtension "html"
+    compile $
+      pandocCompiler
+        >>= loadAndApplyTemplate "templates/project.html" projectCtx
+        >>= loadAndApplyTemplate "templates/default.html" projectCtx
+        >>= relativizeUrls
+
+  create ["projects.html"] $ do
+    route idRoute
+    compile $ do
+      projects <- recentFirst =<< loadAll "projects/*"
+      let ctx =
+            listField "projects" postCtx (return projects)
+              `mappend` constField "title" "Projects"
+              `mappend` projectCtx
+
+      makeItem ""
+        >>= loadAndApplyTemplate "templates/projects.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
+        >>= relativizeUrls
+
+  create ["css/syntax.css"] $ do
+    route idRoute
+    compile $ do
+      makeItem $ styleToCss pandocCodeStyle
+
   match "index.html" $ do
     route idRoute
     compile $ do
-      let isFeatured item = do
-            prop <- getMetadataField (itemIdentifier item) "featured"
-            pure $ prop == Just "true"
       posts <- filterM isFeatured =<< recentFirst =<< loadAll "posts/*"
+      projects <- loadAll "projects/*"
 
       let indexCtx =
             listField "posts" postCtx (return posts)
-              `mappend` defaultContext
+              <> listField "projects" projectCtx (return projects)
+              <> defaultContext
 
       getResourceBody
         >>= applyAsTemplate indexCtx
@@ -105,9 +112,46 @@ main = hakyllWith config $ do
         >>= loadAndApplyTemplate "templates/default.html" defaultContext
 
   match "templates/*" $ compile templateBodyCompiler
+  where
+    isFeatured item = do
+      prop <- getMetadataField (itemIdentifier item) "featured"
+      pure $ prop == Just "true"
 
 --------------------------------------------------------------------------------
 postCtx :: Context String
 postCtx =
   dateField "date" "%B %e, %Y"
     `mappend` defaultContext
+
+--------------------------------------------------------------------------------
+-- The Code I have added to default config
+config :: Configuration
+config =
+  defaultConfiguration
+    { destinationDirectory = "docs"
+    }
+
+pandocCodeStyle :: Style
+pandocCodeStyle = haddock
+
+postCtxWithTags :: Tags -> Context String
+postCtxWithTags tags = tagsField "tags" tags `mappend` postCtx
+
+projectCtx :: Context String
+projectCtx =
+    listField "collaborators" defaultContext getCollaborators
+    <> metadataField
+    <> dateField "date" "%B %e, %Y"
+    <> defaultContext
+
+getCollaborators :: Compiler [Item String]
+getCollaborators = do
+  identifier <- getUnderlying
+  collaboratorStr <- getMetadataField identifier "collaboratos"
+  case collaboratorStr of
+    Nothing -> fmap (\x -> [x]) (makeItem "dawkrish")
+    Just cs -> do
+      let collabs = (map trim . splitAll ",") cs
+      mapM makeItem collabs
+
+-----------------------------------------

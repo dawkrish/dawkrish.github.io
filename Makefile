@@ -1,2 +1,2 @@
 dev:
-	cabal build && cabal exec site rebuild && cabal exec site watch
+	cabal exec site clean && cabal build && cabal exec site build && cabal exec site watch
