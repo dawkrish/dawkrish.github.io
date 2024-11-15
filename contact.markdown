@@ -2,5 +2,9 @@
 title: Contact
 ---
 
-I live in a small hut in the mountains of Kumano Kodō on Kii Hantō and would not
-like to be contacted.
+You can mail me at <u>krishnansh710@gmail.com</u>
+
+I am also active in the following discord servers
+
+- [boot.dev](https://www.boot.dev/community)
+- [Functional Programming](https://discord.gg/K6XHBSh)

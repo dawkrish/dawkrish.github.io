@@ -1,6 +1,7 @@
 --------------------------------------------------------------------------------
 {-# LANGUAGE OverloadedStrings #-}
 
+import Control.Monad
 import Data.Monoid (mappend)
 import Hakyll
 import Text.Pandoc.Highlighting
@@ -53,7 +54,6 @@ main = hakyllWith config $ do
         >>= loadAndApplyTemplate "templates/default.html" ctx
         >>= relativizeUrls
 
-
   match "posts/*" $ do
     route $ setExtension "html"
     compile $
@@ -67,24 +67,28 @@ main = hakyllWith config $ do
     compile $ do
       makeItem $ styleToCss pandocCodeStyle
 
-  create ["archive.html"] $ do
+  create ["posts.html"] $ do
     route idRoute
     compile $ do
       posts <- recentFirst =<< loadAll "posts/*"
-      let archiveCtx =
+      let ctx =
             listField "posts" postCtx (return posts)
-              `mappend` constField "title" "Archives"
+              `mappend` constField "title" "Posts"
               `mappend` defaultContext
 
       makeItem ""
-        >>= loadAndApplyTemplate "templates/archive.html" archiveCtx
-        >>= loadAndApplyTemplate "templates/default.html" archiveCtx
+        >>= loadAndApplyTemplate "templates/posts.html" ctx
+        >>= loadAndApplyTemplate "templates/default.html" ctx
         >>= relativizeUrls
 
   match "index.html" $ do
     route idRoute
     compile $ do
-      posts <- recentFirst =<< loadAll "posts/*"
+      let isFeatured item = do
+            prop <- getMetadataField (itemIdentifier item) "featured"
+            pure $ prop == Just "true"
+      posts <- filterM isFeatured =<< recentFirst =<< loadAll "posts/*"
+
       let indexCtx =
             listField "posts" postCtx (return posts)
               `mappend` defaultContext
@@ -93,6 +97,12 @@ main = hakyllWith config $ do
         >>= applyAsTemplate indexCtx
         >>= loadAndApplyTemplate "templates/default.html" indexCtx
         >>= relativizeUrls
+
+  match "404.html" $ do
+    route idRoute
+    compile $
+      pandocCompiler
+        >>= loadAndApplyTemplate "templates/default.html" defaultContext
 
   match "templates/*" $ compile templateBodyCompiler
 
