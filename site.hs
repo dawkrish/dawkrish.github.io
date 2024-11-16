@@ -139,19 +139,7 @@ postCtxWithTags tags = tagsField "tags" tags `mappend` postCtx
 
 projectCtx :: Context String
 projectCtx =
-    listField "collaborators" defaultContext getCollaborators
-    <> metadataField
-    <> dateField "date" "%B %e, %Y"
+    dateField "date" "%B %e, %Y"
     <> defaultContext
-
-getCollaborators :: Compiler [Item String]
-getCollaborators = do
-  identifier <- getUnderlying
-  collaboratorStr <- getMetadataField identifier "collaboratos"
-  case collaboratorStr of
-    Nothing -> fmap (\x -> [x]) (makeItem "dawkrish")
-    Just cs -> do
-      let collabs = (map trim . splitAll ",") cs
-      mapM makeItem collabs
 
 -----------------------------------------
